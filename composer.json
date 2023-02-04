@@ -1,19 +1,19 @@
 {
-    "name": "acelle/flutterwave",
-    "title": "Flutterwave Payment Plugin",
+    "name": "acelle/baokim",
+    "title": "Baokim Payment Plugin",
     "version": "1.0.2",
     "app_version": "4.0.24-p419",
-    "description": "Add Flutterwave Payment Gateway to system then user can purchase invoice via Flutterwave",
+    "description": "Add Baokim Payment Gateway to system then user can purchase invoice via Baokim",
     "autoload": {
         "psr-4": {
-            "Acelle\\Flutterwave\\": "src/"
+            "Acelle\\Baokim\\": "src/"
         }
     },
     "extra": {
-        "setting-route": "\\Acelle\\Flutterwave\\Controllers\\DashboardController@index",
+        "setting-route": "\\Acelle\\Baokim\\Controllers\\DashboardController@index",
         "laravel": {
             "providers": [
-                "Acelle\\Flutterwave\\ServiceProvider"
+                "Acelle\\Baokim\\ServiceProvider"
             ]
         }
     }
