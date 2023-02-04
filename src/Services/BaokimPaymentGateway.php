@@ -9,18 +9,20 @@ use Acelle\Baokim\Baokim;
 
 class BaokimPaymentGateway implements PaymentGatewayInterface
 {
-    public $publicKey;
+    public $apiKey;
     public $secretKey;
+    public $uri;
 
     public const TYPE = 'baokim';
 
     /**
      * Construction
      */
-    public function __construct($publicKey, $secretKey)
+    public function __construct($apiKey, $secretKey, $uri)
     {
-        $this->publicKey = $publicKey;
+        $this->apiKey = $apiKey;
         $this->secretKey = $secretKey;
+        $this->uri = $uri;
     }
 
     public function getName() : string
