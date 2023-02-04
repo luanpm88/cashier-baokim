@@ -3,7 +3,6 @@
 namespace Acelle\Baokim;
 
 use Acelle\Model\Setting;
-use Acelle\Model\Plugin;
 use Acelle\Cashier\Library\TransactionVerificationResult;
 use Acelle\Baokim\Services\BaokimPaymentGateway;
 use Acelle\Cashier\Library\AutoBillingData;
@@ -11,17 +10,14 @@ use Acelle\Cashier\Library\AutoBillingData;
 class Baokim
 {
     public const NAME = 'acelle/baokim';
-    public const GATEWAY = 'baokim';
 
     public $gateway;
-    public $plugin;
 
     public function __construct()
     {
-        $publicKey = Setting::get('cashier.baokim.public_key');
-        $secretKey = Setting::get('cashier.baokim.secret_key');
+        $publicKey = env('BAOKIM_PUBLIC_KEY','');
+        $secretKey = env('BAOKIM_SECRET_KEY','');
         $this->gateway = new BaokimPaymentGateway($publicKey, $secretKey);
-        $this->plugin = Plugin::where('name', self::NAME)->first();
     }
 
     public static function initialize()

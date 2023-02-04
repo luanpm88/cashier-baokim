@@ -39,11 +39,9 @@ class ServiceProvider extends Base
 
         // register payment
         $baokim = Baokim::initialize();
-        if ($baokim->plugin->isActive()) {
-            Billing::register(Baokim::GATEWAY, function() use ($baokim) {
-                return $baokim->gateway;
-            });
-        }
+        Billing::register($baokim->gateway->getType(), function() use ($baokim) {
+            return $baokim->gateway;
+        });
     }
 
     /**
