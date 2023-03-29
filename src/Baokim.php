@@ -59,12 +59,63 @@ class Baokim
 
     public function createOrder($data)
     {
-        return $this->request($this->gateway->uri . '/api/v5/order/send', 'POST', [
-            'query' => [
-                'jwt' => $this->getToken(),
-            ],
-            'form_params' => $data,
-        ]);
+        $client = new \GuzzleHttp\Client(['timeout' => 20.0]);
+        $options['query']['jwt'] = $this->getToken();
+
+        $options['form_params'] = $data;
+
+        $response = $client->request("POST", $this->gateway->uri . "/api/v5/order/send", $options);
+        $dataResponse = json_decode($response->getBody()->getContents(), true);
+
+        // echo "Response status code: " . $response->getStatusCode();
+        // echo "<br/>";
+        // echo "Response data: ";
+        // echo '<pre>'.print_r($dataResponse, true).'</pre>';
+
+        // var_dump($this->getToken());die();
+        // var_dump($data);die();
+
+
+        // return $this->request($this->gateway->uri . '/api/v5/order/send', 'POST', [
+        //     'query' => [
+        //         'jwt' => $this->getToken(),
+        //     ],
+        //     'form_params' => $data,
+        // ]);
+
+        return $dataResponse;
+    }
+
+    public function checkOrder($bkId, $invoice_uid)
+    {
+        $client = new \GuzzleHttp\Client(['timeout' => 20.0]);
+        $options['query']['jwt'] = $this->getToken();
+
+        $options['form_params'] = [
+            'id' => $bkId,
+            'mrc_order_id' => $invoice_uid,
+        ];
+
+        $response = $client->request("GET", $this->gateway->uri . "/api/v5/order/detail", $options);
+        $dataResponse = json_decode($response->getBody()->getContents(), true);
+
+        // echo "Response status code: " . $response->getStatusCode();
+        // echo "<br/>";
+        // echo "Response data: ";
+        // echo '<pre>'.print_r($dataResponse, true).'</pre>';
+
+        // var_dump($this->getToken());die();
+        // var_dump($data);die();
+
+
+        // return $this->request($this->gateway->uri . '/api/v5/order/send', 'POST', [
+        //     'query' => [
+        //         'jwt' => $this->getToken(),
+        //     ],
+        //     'form_params' => $data,
+        // ]);
+
+        return $dataResponse;
     }
 
     public function getKey()

@@ -16,44 +16,84 @@ class BaokimController extends BaseController
         $invoice = Invoice::findByUid($invoice_uid);
         $baokim = Baokim::initialize($invoice);
 
+        $data = $invoice->getMetadata('baokim');
+        // exist order
+        if($data && isset($data['data']) &&isset($data['data']['payment_url'])) {
+            return redirect()->away($data['data']['payment_url']);
+        }
+
         $result = $baokim->createOrder(json_decode('{
-            "mrc_order_id": "string",
-            "total_amount": 200000,
-            "description": "test",
-            "url_success": "https://baokim.vn/",
+            "mrc_order_id": "'.$invoice->uid.'",
+            "total_amount": '.$invoice->totalWithTax().',
+            "description": "'.$invoice->description.'",
+            "url_success": "'.action('\Acelle\Baokim\Controllers\BaokimController@checkoutSuccess', $invoice->uid).'",
             "merchant_id": '.env('BAOKIM_MERCHANT_ID').',
-            "url_detail": "https://baokim.vn/",
+            "url_detail": "'.action('\App\Http\Controllers\SummaryController@invoice', $invoice->uid).'",
             "lang": "en",
-            "bpm_id": 128,
-            "webhooks": "https://baokim.vn/",
-            "customer_email": "test@gmail.vn",
-            "customer_phone": "0888888888",
-            "customer_name": "Nguyen Van A",
-            "customer_address": "102 Thai Thinh",
-            "items": {
-            "period": 3,
-            "total_amount": "3000000.00",
-            "down_payment": "1500000.00",
-            "down_payment_percent": "50.00",
-            "paylater_amount": "1500000.00",
-            "pay_per_month": "500000.00",
-            "user_fee": "0",
-            "merchant_fee": "120000"
-            },
-            "extension": {
-            "items": [
-                {
-                "item_id": "abc123",
-                "item_code": "ABC123",
-                "item_name": "tủ lạnh",
-                "price_amount": 10000000,
-                "quantity": 3,
-                "url": "http://baokim.vn/tu-lanh/abc123"
-                }
-            ]
-            }
+            "webhooks": "'.action('\Acelle\Baokim\Controllers\BaokimController@checkoutHook', $invoice->uid).'",
+            "customer_email": "'.$invoice->billing_email.'",
+            "customer_phone": "'.$invoice->billing_phone.'",
+            "customer_name": "'.$invoice->getBillingName().'",
+            "customer_address": "'.$invoice->billing_address.'"
         }', true));
 
-        var_dump($result);
+        // success get payment url
+        if($result && isset($result['data']) && isset($result['data']['payment_url'])) {
+            // update metadata
+            $invoice->updateMetadata([
+                'baokim' => $result
+            ]);
+            
+            return redirect()->away($result['data']['payment_url']);
+        }
+
+        var_dump($result);die();
+    }
+
+    public function checkoutHook(Request $request, $invoice_uid)
+    {        
+        $invoice = Invoice::findByUid($invoice_uid);
+        $baokim = Baokim::initialize();
+        
+        // BAO KIM
+        $jsonWebhookData = file_get_contents('php://input');
+        $webhookData = json_decode($jsonWebhookData, true);
+
+        $baokimSign = $webhookData['sign'];
+        unset($webhookData['sign']);
+        
+        $signData = json_encode($webhookData);
+        
+        $secret = $baokim->gateway->secretKey;
+        $mySign = hash_hmac('sha256', $signData, $secret);
+        
+        if($baokimSign == $mySign) {
+            // success
+            $invoice->checkout($vnpay->gateway, function () {
+                return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
+            });
+        } else {
+            echo "Signature is invalid aaa";
+        }
+
+        die;
+    }
+
+    public function checkoutSuccess(Request $request, $invoice_uid)
+    {
+        $baokim = Baokim::initialize();
+
+        $bkId = $request->id;
+        $mrc_order_id = $invoice_uid;
+
+        var_dump($mrc_order_id);
+
+        die();
+
+        $response = $baokim->checkOrder($bkId, $mrc_order_id);
+
+        var_dump($response);die();
+
+        return redirect()->away(Billing::getReturnUrl());
     }
 }
