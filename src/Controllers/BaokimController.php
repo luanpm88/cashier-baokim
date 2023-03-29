@@ -17,13 +17,14 @@ class BaokimController extends BaseController
         $baokim = Baokim::initialize($invoice);
 
         $data = $invoice->getMetadata('baokim');
+        
         // exist order
-        if($data && isset($data['data']) &&isset($data['data']['payment_url'])) {
-            return redirect()->away($data['data']['payment_url']);
+        if($data && isset($data['data']) &&isset($data['data']['order_id'])) {
+            $cancel = $baokim->cancelOrder($data['data']['order_id']);
         }
 
         $result = $baokim->createOrder(json_decode('{
-            "mrc_order_id": "'.$invoice->uid.'",
+            "mrc_order_id": "'.uniqid().'",
             "total_amount": '.$invoice->totalWithTax().',
             "description": "'.$invoice->description.'",
             "url_success": "'.action('\Acelle\Baokim\Controllers\BaokimController@checkoutSuccess', $invoice->uid).'",
@@ -69,7 +70,7 @@ class BaokimController extends BaseController
         
         if($baokimSign == $mySign) {
             // success
-            $invoice->checkout($vnpay->gateway, function () {
+            $invoice->checkout($baokim->gateway, function () {
                 return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
             });
         } else {
@@ -81,19 +82,6 @@ class BaokimController extends BaseController
 
     public function checkoutSuccess(Request $request, $invoice_uid)
     {
-        $baokim = Baokim::initialize();
-
-        $bkId = $request->id;
-        $mrc_order_id = $invoice_uid;
-
-        var_dump($mrc_order_id);
-
-        die();
-
-        $response = $baokim->checkOrder($bkId, $mrc_order_id);
-
-        var_dump($response);die();
-
         return redirect()->away(Billing::getReturnUrl());
     }
 }
