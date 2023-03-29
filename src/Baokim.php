@@ -98,6 +98,22 @@ class Baokim
         return $client->request("POST", $this->gateway->uri . "/api/v5/order/cancel", $options);
     }
 
+    public function checkOrder($bkId, $invoice_uid)
+    {
+        $client = new \GuzzleHttp\Client(['timeout' => 20.0]);
+
+        $options['query'] = [
+            'jwt' => $this->getToken(),
+            'id' => $bkId,
+            'mrc_order_id' => $invoice_uid,
+        ];
+
+        $response = $client->request("GET", $this->gateway->uri . "/api/v5/order/detail", $options);
+        $dataResponse = json_decode($response->getBody()->getContents(), true);
+
+        return $dataResponse;
+    }
+
     public function getKey()
     {
         return $this->_jwt;

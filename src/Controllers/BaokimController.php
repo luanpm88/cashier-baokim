@@ -82,6 +82,24 @@ class BaokimController extends BaseController
 
     public function checkoutSuccess(Request $request, $invoice_uid)
     {
-        return redirect()->away(Billing::getReturnUrl());
+        $invoice = Invoice::findByUid($invoice_uid);
+        $baokim = Baokim::initialize($invoice);
+        
+        $response = $baokim->checkOrder($request->id, $request->mrc_order_id);
+
+        if(!$invoice->isPaid() &&
+            $response &&
+            isset($response['data']) &&
+            isset($response['data']['stat']) &&
+            $response['data']['stat'] == 'c') {
+                // success
+                $invoice->checkout($baokim->gateway, function () {
+                    return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
+                });
+                
+                return redirect()->away(Billing::getReturnUrl());
+        }
+
+        var_dump($response);die();
     }
 }
