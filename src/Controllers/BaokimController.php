@@ -69,10 +69,12 @@ class BaokimController extends BaseController
         $mySign = hash_hmac('sha256', $signData, $secret);
         
         if($baokimSign == $mySign) {
-            // success
-            $invoice->checkout($baokim->gateway, function () {
-                return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
-            });
+            if (!$invoice->isPaid()) {
+                // success
+                $invoice->checkout($baokim->gateway, function () {
+                    return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
+                });
+            }
         } else {
             echo "Signature is invalid aaa";
         }
