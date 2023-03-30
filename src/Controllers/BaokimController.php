@@ -69,17 +69,22 @@ class BaokimController extends BaseController
         $mySign = hash_hmac('sha256', $signData, $secret);
         
         if($baokimSign == $mySign) {
+            echo "Signature is valid...";
             if (!$invoice->isPaid()) {
+                echo "Invoice is not paid. Set as paid now...";
                 // success
                 $invoice->checkout($baokim->gateway, function () {
                     return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
                 });
+                echo "Pay invoice success";
+            } else {
+                echo "Invoice is already paid";
             }
         } else {
-            echo "Signature is invalid aaa";
+            echo "Signature is invalid";
         }
 
-        die;
+        die();
     }
 
     public function checkoutSuccess(Request $request, $invoice_uid)
