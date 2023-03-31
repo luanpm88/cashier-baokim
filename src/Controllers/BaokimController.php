@@ -23,20 +23,20 @@ class BaokimController extends BaseController
             $cancel = $baokim->cancelOrder($data['data']['order_id']);
         }
 
-        $result = $baokim->createOrder(json_decode('{
-            "mrc_order_id": "'.uniqid().'",
-            "total_amount": '.$invoice->totalWithTax().',
-            "description": "'.$invoice->description.'",
-            "url_success": "'.action('\Acelle\Baokim\Controllers\BaokimController@checkoutSuccess', $invoice->uid).'",
-            "merchant_id": '.env('BAOKIM_MERCHANT_ID').',
-            "url_detail": "'.action('\App\Http\Controllers\SummaryController@invoice', $invoice->uid).'",
-            "lang": "en",
-            "webhooks": "'.action('\Acelle\Baokim\Controllers\BaokimController@checkoutHook', $invoice->uid).'",
-            "customer_email": "'.$invoice->billing_email.'",
-            "customer_phone": "'.$invoice->billing_phone.'",
-            "customer_name": "'.$invoice->getBillingName().'",
-            "customer_address": "'.$invoice->billing_address.'"
-        }', true));
+        $result = $baokim->createOrder([
+            'mrc_order_id' => uniqid(),
+            'total_amount' => $invoice->totalWithTax(),
+            'description' => $invoice->description,
+            'url_success' => action('\Acelle\Baokim\Controllers\BaokimController@checkoutSuccess', $invoice->uid),
+            'merchant_id' => env('BAOKIM_MERCHANT_ID'),
+            'url_detail' => action('\App\Http\Controllers\SummaryController@invoice', $invoice->uid),
+            'lang' => 'en',
+            'webhooks' => action('\Acelle\Baokim\Controllers\BaokimController@checkoutHook', $invoice->uid),
+            'customer_email' => $invoice->billing_email,
+            'customer_phone' => $invoice->billing_phone,
+            'customer_name' => $invoice->getBillingName(),
+            'customer_address' => $invoice->billing_address,
+        ]);
 
         // success get payment url
         if($result && isset($result['data']) && isset($result['data']['payment_url'])) {
