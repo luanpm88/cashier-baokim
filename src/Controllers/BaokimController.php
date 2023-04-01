@@ -94,6 +94,12 @@ class BaokimController extends BaseController
         
         $response = $baokim->checkOrder($request->id, $request->mrc_order_id);
 
+        // return back if invoice paid
+        if($invoice->isPaid()) {
+            return redirect()->away(Billing::getReturnUrl());
+
+        }
+
         if(!$invoice->isPaid() &&
             $response &&
             isset($response['data']) &&
