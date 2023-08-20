@@ -4,8 +4,6 @@ namespace Acelle\Baokim;
 
 use Illuminate\Support\ServiceProvider as Base;
 use Acelle\Library\Facades\Hook;
-use Acelle\Library\Facades\Billing;
-use Acelle\Baokim\Baokim;
 
 class ServiceProvider extends Base
 {
@@ -35,12 +33,6 @@ class ServiceProvider extends Base
                 "file_name" => "messages.php",
                 "master_translation_file" => realpath(__DIR__.'/../resources/lang/en/messages.php'),
             ];
-        });
-
-        // register payment
-        $baokim = Baokim::initialize();
-        Billing::register($baokim->gateway->getType(), function() use ($baokim) {
-            return $baokim->gateway;
         });
     }
 

@@ -3,10 +3,11 @@
 namespace Acelle\Baokim;
 
 use Acelle\Model\Setting;
-use Acelle\Cashier\Library\TransactionVerificationResult;
+use Acelle\Library\TransactionResult;
 use Acelle\Baokim\Services\BaokimPaymentGateway;
 use Acelle\Cashier\Library\AutoBillingData;
 use Firebase\JWT\JWT;
+use Firebase\JWT\Key;
 
 class Baokim
 {
@@ -162,7 +163,7 @@ class Baokim
         $this->refreshToken($this->gateway->apiKey, $this->gateway->secretKey);
 
 		try {
-			JWT::decode($this->_jwt, $this->gateway->secretKey, array('HS256'));
+			JWT::decode($this->_jwtnew, new Key($this->gateway->secretKey, 'HS256')); //, $this->gateway->secretKey, array('HS256'));
 		}catch(\Exception $e){
 			$this->refreshToken($this->gateway->apiKey, $this->gateway->secretKey);
 		}

@@ -2,8 +2,8 @@
 
 namespace Acelle\Baokim\Services;
 
-use Acelle\Cashier\Interfaces\PaymentGatewayInterface;
-use Acelle\Cashier\Library\TransactionVerificationResult;
+use Acelle\Library\Contracts\PaymentGatewayInterface;
+use Acelle\Library\TransactionResult;
 use Acelle\Model\Transaction;
 use Acelle\Baokim\Baokim;
 
@@ -30,29 +30,29 @@ class BaokimPaymentGateway implements PaymentGatewayInterface
         return 'BaoKim';
     }
 
-    public function getType() : string
+    public function getType(): string
     {
         return self::TYPE;
     }
 
-    public function getDescription() : string
+    public function getDescription(): string
     {
-        return trans('baokim::messages.baokim.description');
+        return 'Những giải pháp trung gian thanh toán đa dạng của Baokim giúp quý đối tác tối ưu quy trình vận hành doanh nghiệp, tối đa hóa lợi nhuận, và mang tới trải nghiệm tốt nhất cho khách hàng dựa trên cam kết giao dịch trực tuyến an toàn, thuận tiện, nhanh chóng.';
     }
 
-    public function getShortDescription() : string
+    public function getShortDescription(): string
     {
-        return trans('baokim::messages.baokim.short_description');
+        return 'Baokim - Giải pháp thanh toán hàng đầu Việt Nam';
     }
 
     public function isActive() : bool
     {
-        return ($this->publicKey && $this->secretKey);
+        return ($this->apiKey && $this->secretKey);
     }
 
     public function getSettingsUrl() : string
     {
-        return action("\Acelle\Baokim\Controllers\BaokimController@settings");
+        return action("\Acelle\Baokim\Controllers\BaokimController@index");
     }
 
     public function getCheckoutUrl($invoice) : string
@@ -62,7 +62,7 @@ class BaokimPaymentGateway implements PaymentGatewayInterface
         ]);
     }
 
-    public function verify(Transaction $transaction) : TransactionVerificationResult
+    public function verify(Transaction $transaction) : TransactionResult
     {
         $invoice = $transaction->invoice;
         $baokim = Baokim::initialize();
@@ -86,9 +86,9 @@ class BaokimPaymentGateway implements PaymentGatewayInterface
                 // charge invoice
                 $baokim->pay($invoice);
 
-                return new TransactionVerificationResult(TransactionVerificationResult::RESULT_DONE);
+                return new TransactionResult(TransactionResult::RESULT_DONE);
             } catch (\Exception $e) {
-                return new TransactionVerificationResult(TransactionVerificationResult::RESULT_FAILED, $e->getMessage() .
+                return new TransactionResult(TransactionResult::RESULT_FAILED, $e->getMessage() .
                     '. <a href="' . $baokim->gateway->getCheckoutUrl($invoice) . '">Click here</a> to manually charge.');
             }
         });

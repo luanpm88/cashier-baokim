@@ -7,7 +7,6 @@ use Acelle\Http\Controllers\Controller as BaseController;
 use Acelle\Model\Invoice;
 use Acelle\Baokim\Baokim;
 use Acelle\Library\Facades\Billing;
-use Acelle\Cashier\Library\TransactionVerificationResult;
 
 class BaokimController extends BaseController
 {
@@ -16,20 +15,20 @@ class BaokimController extends BaseController
         $invoice = Invoice::findByUid($invoice_uid);
         $baokim = Baokim::initialize($invoice);
 
-        $data = $invoice->getMetadata('baokim');
+        // $data = $invoice->getMetadata('baokim');
         
-        // exist order
-        if($data && isset($data['data']) &&isset($data['data']['order_id'])) {
-            $cancel = $baokim->cancelOrder($data['data']['order_id']);
-        }
+        // // exist order
+        // if($data && isset($data['data']) &&isset($data['data']['order_id'])) {
+        //     $cancel = $baokim->cancelOrder($data['data']['order_id']);
+        // }
 
         $result = $baokim->createOrder([
             'mrc_order_id' => uniqid(),
-            'total_amount' => $invoice->totalWithTax(),
+            'total_amount' => $invoice->total(),
             'description' => $invoice->description,
             'url_success' => action('\Acelle\Baokim\Controllers\BaokimController@checkoutSuccess', $invoice->uid),
             'merchant_id' => env('BAOKIM_MERCHANT_ID'),
-            'url_detail' => action('\App\Http\Controllers\SummaryController@invoice', $invoice->uid),
+            'url_detail' => action('\Acelle\Http\Controllers\Brand\HomeController@index', $invoice->uid),
             'lang' => 'en',
             'webhooks' => action('\Acelle\Baokim\Controllers\BaokimController@checkoutHook', $invoice->uid),
             'customer_email' => $invoice->billing_email,
@@ -40,10 +39,10 @@ class BaokimController extends BaseController
 
         // success get payment url
         if($result && isset($result['data']) && isset($result['data']['payment_url'])) {
-            // update metadata
-            $invoice->updateMetadata([
-                'baokim' => $result
-            ]);
+            // // update metadata
+            // $invoice->updateMetadata([
+            //     'baokim' => $result
+            // ]);
             
             return redirect()->away($result['data']['payment_url']);
         }
@@ -74,7 +73,7 @@ class BaokimController extends BaseController
                 echo "Invoice is not paid. Set as paid now...";
                 // success
                 $invoice->checkout($baokim->gateway, function () {
-                    return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
+                    return new \Acelle\Library\TransactionResult(\Acelle\Library\TransactionResult::RESULT_DONE);
                 });
                 echo "Pay invoice success";
             } else {
@@ -107,7 +106,7 @@ class BaokimController extends BaseController
             $response['data']['stat'] == 'c') {
                 // success
                 $invoice->checkout($baokim->gateway, function () {
-                    return new \Acelle\Cashier\Library\TransactionVerificationResult(\Acelle\Cashier\Library\TransactionVerificationResult::RESULT_DONE);
+                    return new \Acelle\Library\TransactionResult(\Acelle\Library\TransactionResult::RESULT_DONE);
                 });
                 
                 return redirect()->away(Billing::getReturnUrl());
